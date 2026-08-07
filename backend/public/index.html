@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Smart Electricity Bill Management System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ========== AUTH CONTAINER ========== -->
+<div class="auth-container" id="authContainer">
+    <div class="auth-card">
+        <div class="logo">
+            <i class="fas fa-bolt"></i>
+            <h1>Smart Electric</h1>
+            <p>Bill Management System</p>
+        </div>
+        <div id="loginForm">
+            <input type="text" id="loginEmail" class="auth-input" placeholder="📧 Email Address">
+            <input type="password" id="loginPassword" class="auth-input" placeholder="🔒 Password">
+            <button class="btn-auth" onclick="handleLogin()"><i class="fas fa-sign-in-alt"></i> Login</button>
+            <div class="auth-switch">Don't have an account? <a onclick="showRegister()">Register</a></div>
+        </div>
+        <div id="registerForm" class="hidden">
+            <input type="text" id="regName" class="auth-input" placeholder="👤 Full Name">
+            <input type="email" id="regEmail" class="auth-input" placeholder="📧 Email Address">
+            <input type="password" id="regPassword" class="auth-input" placeholder="🔒 Password">
+            <select id="regBoard" class="auth-input" style="color: white; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 14px 18px; outline: none; margin-bottom: 15px; width: 100%;">
+                <option value="" disabled selected style="background: #0a0e1a; color: rgba(255,255,255,0.5);">⚡ Select Electricity Board</option>
+            </select>
+            <input type="text" id="regMeter" class="auth-input" placeholder="🔢 Meter/Service Number">
+            <button class="btn-auth" onclick="handleRegister()"><i class="fas fa-user-plus"></i> Register</button>
+            <div class="auth-switch">Already have an account? <a onclick="showLogin()">Login</a></div>
+        </div>
+    </div>
+</div>
+
+<!-- ========== MAIN APP ========== -->
+<div class="main-app" id="mainApp">
+    <div class="app-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-small">
+                <i class="fas fa-bolt"></i>
+                <div>
+                    <h2>Smart Electric</h2>
+                    <span>Bill Management System</span>
+                </div>
+            </div>
+            <div class="user-info">
+                <span style="font-size: 14px; color: rgba(255,255,255,0.7);">Welcome, <span id="userNameDisplay">User</span></span>
+                <div class="avatar" id="userAvatar">U</div>
+                <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="icon">⚡</div>
+                <div class="value" id="totalCustomers">0</div>
+                <div class="label">Total Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📊</div>
+                <div class="value" id="totalUsage">0</div>
+                <div class="label">Total Usage (Units)</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">💰</div>
+                <div class="value" id="totalRevenue">₹0</div>
+                <div class="label">Total Revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="icon">📋</div>
+                <div class="value" id="pendingBills">0</div>
+                <div class="label">Pending Bills</div>
+                <div class="status-badge status-unpaid" id="pendingBadge">Unpaid</div>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('customer', this)"><i class="fas fa-user"></i> Customer</button>
+            <button class="tab-btn" onclick="switchTab('payment', this)"><i class="fas fa-credit-card"></i> Payment</button>
+            <button class="tab-btn" onclick="switchTab('notifications', this)"><i class="fas fa-bell"></i> Notifications</button>
+            <button class="tab-btn" onclick="switchTab('analytics', this)"><i class="fas fa-chart-line"></i> Analytics</button>
+            <button class="tab-btn" onclick="switchTab('support', this)"><i class="fas fa-headset"></i> Support</button>
+        </div>
+
+        <!-- Tab: Customer -->
+        <div class="tab-content active" id="tabCustomer">
+            <div class="main-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-search"></i> Search Customer</h3>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.3);">Enter Consumer Number</span>
+                    </div>
+                    <div class="search-box-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                        <select id="searchBoard" class="auth-input" style="color: white; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 12px 16px; width: 100%; outline: none; margin-bottom: 0;">
+                            <option value="" disabled selected style="background: #0a0e1a; color: rgba(255,255,255,0.5);">⚡ Select Electricity Board</option>
+                        </select>
+                        <div class="search-box" style="margin-bottom: 0;">
+                            <input type="text" id="meterSearch" placeholder="🔢 Enter Consumer Number (e.g. CN-123456)" onkeypress="if(event.key==='Enter') searchCustomer()">
+                            <button onclick="searchCustomer()"><i class="fas fa-search"></i> Search</button>
+                        </div>
+                    </div>
+
+                    <div id="customerDetails" style="display: none;">
+                        <div class="customer-detail">
+                            <div class="row"><span class="label">Service Number</span><span class="value" id="detailService">--</span></div>
+                            <div class="row"><span class="label">Consumer Number</span><span class="value" id="detailMeter">--</span></div>
+                            <div class="row"><span class="label">Address</span><span class="value" id="detailAddress">--</span></div>
+                            <div class="row"><span class="label">Meter Type</span><span class="value" id="detailMeterStatus">--</span></div>
+                            <div class="row"><span class="label">Billing Status</span><span class="value" id="detailBillingStatus" style="color: #fbbf24;">--</span></div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="quick-actions">
+                            <div class="quick-action" onclick="switchTab('payment', document.querySelectorAll('.tab-btn')[1])">
+                                <i class="fas fa-credit-card"></i>
+                                <span>Pay Bill</span>
+                            </div>
+                            <div class="quick-action" onclick="sendReminder()">
+                                <i class="fas fa-bell"></i>
+                                <span>Send Reminder</span>
+                            </div>
+                            <div class="quick-action" onclick="viewUsageHistory()">
+                                <i class="fas fa-history"></i>
+                                <span>Usage History</span>
+                            </div>
+                            <div class="quick-action" onclick="viewSavingTips()">
+                                <i class="fas fa-lightbulb"></i>
+                                <span>Saving Tips</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="noCustomer" class="empty-state">
+                        <i class="fas fa-search"></i>
+                        <p>Enter a consumer number to search</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-history"></i> Recent Bills</h3>
+                        <span style="font-size: 12px; color: rgba(255,255,255,0.3);">Last bills</span>
+                    </div>
+                    <div id="recentBills">
+                        <div class="empty-state">
+                            <i class="fas fa-receipt"></i>
+                            <p>No bills found</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Payment -->
+        <div class="tab-content" id="tabPayment">
+            <div class="page-indicator">
+                <button class="back-btn" onclick="switchTab('customer', document.querySelectorAll('.tab-btn')[0])"><i class="fas fa-arrow-left"></i> Back</button>
+                <span class="breadcrumb"><i class="fas fa-home"></i> Dashboard <i class="fas fa-chevron-right"></i> Payment</span>
+                <span class="current-page"><i class="fas fa-credit-card"></i> Bill Payment</span>
+            </div>
+            <div class="main-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-credit-card"></i> Bill Payment</h3>
+                        <span class="status-badge status-pending" id="paymentStatusBadge">Pending</span>
+                    </div>
+                    <div id="paymentDetails">
+                        <div class="bill-amount">
+                            <div class="label">Total Payable Amount</div>
+                            <div class="amount" id="payableAmount">₹0.00</div>
+                            <div style="font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 8px;">
+                                Due Date: <span id="dueDate">--</span>
+                            </div>
+                        </div>
+
+                        <div style="margin: 15px 0;">
+                            <label style="font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7);">Select Payment Method</label>
+                            <div class="payment-options">
+                                <div class="payment-option selected" onclick="selectPayment(this, 'UPI')">
+                                    <i class="fas fa-mobile-alt"></i>
+                                    <span>UPI</span>
+                                </div>
+                                <div class="payment-option" onclick="selectPayment(this, 'Card')">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Card</span>
+                                </div>
+                                <div class="payment-option" onclick="selectPayment(this, 'Net Banking')">
+                                    <i class="fas fa-university"></i>
+                                    <span>Net Banking</span>
+                                </div>
+                                <div class="payment-option" onclick="selectPayment(this, 'Wallet')">
+                                    <i class="fas fa-wallet"></i>
+                                    <span>Wallet</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button class="btn-auth" onclick="processPayment()" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-check-circle"></i> Pay Now
+                        </button>
+                    </div>
+
+                    <div id="paymentConfirmation" style="display: none;">
+                        <div style="text-align: center; padding: 30px 0;">
+                            <i class="fas fa-check-circle" style="font-size: 60px; color: #10b981;"></i>
+                            <h3 style="margin: 15px 0; color: #10b981;">Payment Successful!</h3>
+                            <p style="color: rgba(255,255,255,0.6);">Your bill has been settled successfully.</p>
+                            <div style="margin-top: 20px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px;">
+                                <div style="font-size: 12px; color: rgba(255,255,255,0.4);">Transaction ID</div>
+                                <div style="font-weight: 700; font-size: 18px; color: var(--accent);" id="transactionId">TXN-2026-001</div>
+                            </div>
+                            <button class="btn-auth" onclick="resetPayment()" style="margin-top: 20px; background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                                <i class="fas fa-arrow-left"></i> Back to Dashboard
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bell"></i> Payment Reminder</h3>
+                        <i class="fas fa-sms" style="color: #fbbf24;"></i>
+                    </div>
+                    <div id="reminderSection">
+                        <div style="margin-top: 15px; background: rgba(251, 191, 36, 0.1); border-radius: 15px; padding: 15px; border: 1px solid rgba(251, 191, 36, 0.2);">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-exclamation-triangle" style="color: #fbbf24;"></i>
+                                <div>
+                                    <div style="font-weight: 600;">⚠️ Manual Bill Reminder</div>
+                                    <div style="font-size: 12px; color: rgba(255,255,255,0.5);">Trigger a notification reminder for this bill</div>
+                                </div>
+                            </div>
+                            <button class="btn-reminder" onclick="sendReminder()">
+                                <i class="fas fa-bell"></i> Send Reminder Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Notifications -->
+        <div class="tab-content" id="tabNotifications">
+            <div class="page-indicator">
+                <button class="back-btn" onclick="switchTab('customer', document.querySelectorAll('.tab-btn')[0])"><i class="fas fa-arrow-left"></i> Back</button>
+                <span class="breadcrumb"><i class="fas fa-home"></i> Dashboard <i class="fas fa-chevron-right"></i> Notifications</span>
+                <span class="current-page"><i class="fas fa-bell"></i> Notification Center</span>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-bell"></i> Notification Center</h3>
+                    <span class="status-badge status-paid" id="notificationCount">0</span>
+                </div>
+                <div id="notificationList">
+                    <div class="empty-state">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No notifications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Analytics -->
+        <div class="tab-content" id="tabAnalytics">
+            <div class="page-indicator">
+                <button class="back-btn" onclick="switchTab('customer', document.querySelectorAll('.tab-btn')[0])"><i class="fas fa-arrow-left"></i> Back</button>
+                <span class="breadcrumb"><i class="fas fa-home"></i> Dashboard <i class="fas fa-chevron-right"></i> Analytics</span>
+                <span class="current-page"><i class="fas fa-chart-line"></i> Analytics Dashboard</span>
+            </div>
+            <div class="main-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-chart-bar"></i> Monthly Usage Trend</h3>
+                    </div>
+                    <div class="chart-container" style="position: relative; height:250px; width:100%">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-bullseye"></i> Collection Efficiency</h3>
+                    </div>
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 48px; font-weight: 800; color: #fbbf24;" id="collectionEfficiency">0%</div>
+                        <div style="font-size: 14px; color: rgba(255,255,255,0.5);">Payment Collection Rate</div>
+                        <div class="progress-bar" style="margin-top: 15px; height: 12px; background: rgba(255,255,255,0.1); border-radius: 10px; overflow: hidden;">
+                            <div id="efficiencyBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #fbbf24); transition: width 0.5s;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Support -->
+        <div class="tab-content" id="tabSupport">
+            <div class="page-indicator">
+                <button class="back-btn" onclick="switchTab('customer', document.querySelectorAll('.tab-btn')[0])"><i class="fas fa-arrow-left"></i> Back</button>
+                <span class="breadcrumb"><i class="fas fa-home"></i> Dashboard <i class="fas fa-chevron-right"></i> Support</span>
+                <span class="current-page"><i class="fas fa-headset"></i> Support Center</span>
+            </div>
+            <div class="main-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-headset"></i> Customer Support</h3>
+                    </div>
+                    <div style="text-align: center; padding: 20px;">
+                        <i class="fas fa-headset" style="font-size: 60px; color: #fbbf24; margin-bottom: 15px;"></i>
+                        <h4>24/7 Support Available</h4>
+                        <p style="color: rgba(255,255,255,0.5); font-size: 14px; margin-top: 10px;">Get help with your electricity bills anytime</p>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; text-align: center;">
+                            <i class="fas fa-phone" style="color: #10b981; font-size: 24px;"></i>
+                            <div style="font-size: 13px; margin-top: 8px;">Call Us</div>
+                            <div style="font-size: 14px; font-weight: 600;">1800-123-4567</div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; text-align: center;">
+                            <i class="fas fa-envelope" style="color: #4facfe; font-size: 24px;"></i>
+                            <div style="font-size: 13px; margin-top: 8px;">Email</div>
+                            <div style="font-size: 14px; font-weight: 600;">support@electricsmart.com</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
